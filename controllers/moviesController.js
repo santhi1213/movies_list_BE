@@ -6,17 +6,51 @@ const getPosterUrl = (posterUrl) =>
     ? `${process.env.SERVER_URL || "http://localhost:5000"}${posterUrl}`
     : `${process.env.SERVER_URL || "http://localhost:5000"}/uploads/default-placeholder.jpg`;
 
+// async function createMovie(req, res, next) {
+//   try {
+//     const movieData = req.body;
+//     if (req.file) {
+//       movieData.poster_url = `/uploads/${req.file.filename}`;
+//     }
+//     const movie = await Movie.create(movieData);
+//     // Return movie with full poster_url
+//     const movieJSON = movie.toJSON();
+//     movieJSON.poster_url = getPosterUrl(movie.poster_url);
+//     res.status(201).json(movieJSON);
+//   } catch (err) {
+//     next(err);
+//   }
+// }
+
 async function createMovie(req, res, next) {
   try {
     const movieData = req.body;
-    if (req.file) {
-      movieData.poster_url = `/uploads/${req.file.filename}`;
+
+    // If image uploaded, Cloudinary returns its URL
+    if (req.file && req.file.path) {
+      movieData.poster_url = req.file.path; // Cloudinary full URL
     }
+
     const movie = await Movie.create(movieData);
-    // Return movie with full poster_url
-    const movieJSON = movie.toJSON();
-    movieJSON.poster_url = getPosterUrl(movie.poster_url);
-    res.status(201).json(movieJSON);
+    res.status(201).json(movie);
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function updateMovie(req, res, next) {
+  try {
+    const movie = await Movie.findByPk(req.params.id);
+    if (!movie) return res.status(404).json({ message: "Movie not found" });
+
+    const updatedData = req.body;
+
+    if (req.file && req.file.path) {
+      updatedData.poster_url = req.file.path; // Cloudinary URL
+    }
+
+    await movie.update(updatedData);
+    res.json(movie);
   } catch (err) {
     next(err);
   }
@@ -65,26 +99,26 @@ async function getMovieById(req, res, next) {
   }
 }
 
-async function updateMovie(req, res, next) {
-  try {
-    const movie = await Movie.findByPk(req.params.id);
-    if (!movie) return res.status(404).json({ message: "Movie not found" });
+// async function updateMovie(req, res, next) {
+//   try {
+//     const movie = await Movie.findByPk(req.params.id);
+//     if (!movie) return res.status(404).json({ message: "Movie not found" });
 
-    const updatedData = req.body;
-    if (req.file) {
-      updatedData.poster_url = `/uploads/${req.file.filename}`;
-    }
+//     const updatedData = req.body;
+//     if (req.file) {
+//       updatedData.poster_url = `/uploads/${req.file.filename}`;
+//     }
 
-    await movie.update(updatedData);
+//     await movie.update(updatedData);
 
-    const movieJSON = movie.toJSON();
-    movieJSON.poster_url = getPosterUrl(movie.poster_url);
+//     const movieJSON = movie.toJSON();
+//     movieJSON.poster_url = getPosterUrl(movie.poster_url);
 
-    res.json(movieJSON);
-  } catch (err) {
-    next(err);
-  }
-}
+//     res.json(movieJSON);
+//   } catch (err) {
+//     next(err);
+//   }
+// }
 
 async function deleteMovie(req, res, next) {
   try {
