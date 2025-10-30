@@ -1,10 +1,20 @@
 const { Movie } = require("../models");
 const { getPagination } = require("../utils/paginate");
 
-const getPosterUrl = (posterUrl) =>
-  posterUrl
-    ? `${process.env.SERVER_URL || "http://localhost:5000"}${posterUrl}`
-    : `${process.env.SERVER_URL || "http://localhost:5000"}/uploads/default-placeholder.jpg`;
+const getPosterUrl = (posterUrl) => {
+  if (!posterUrl) {
+    return `${process.env.SERVER_URL || "http://localhost:5000"}/uploads/default-placeholder.jpg`;
+  }
+
+  // If already a full Cloudinary URL, return as-is
+  if (posterUrl.startsWith("http")) {
+    return posterUrl;
+  }
+
+  // Otherwise, it's a local file path
+  return `${process.env.SERVER_URL || "http://localhost:5000"}${posterUrl}`;
+};
+
 
 // async function createMovie(req, res, next) {
 //   try {
